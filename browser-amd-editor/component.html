@@ -41,7 +41,7 @@
 			}
 			const myEditor = monaco.editor.create(document.getElementById('container'), {
 				value: event.data.value,
-				language: 'css'
+				language: event.data.language
 			});
 			var nowHeight = 0
 
