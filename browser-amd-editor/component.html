@@ -71,7 +71,7 @@
 						getNowHeight()
 					}
 				});
-			}else {
+			}else if(event.data.language==='javascript'){
 				myEditor.onDidChangeModelContent(function (event) {
 					// 获取更改内容
 					var changes = event.changes;
@@ -80,9 +80,8 @@
 						var change = changes[i];
 						console.log('change:', change.range)
 						console.log(`change.text:`,change.text)
-						if ((myEditor.getModel().getLineContent(1)!=='(()=>{')
-								||
-								(myEditor.getModel().getLineContent(myEditor.getModel().getLineCount())!=='})()')
+						if ((myEditor.getModel().getLineContent(1)!=='(()=>{') ||
+			            (myEditor.getModel().getLineContent(myEditor.getModel().getLineCount())!=='})()')
 						) {
 							myEditor.getModel().undo()
 						}
