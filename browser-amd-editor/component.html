@@ -53,31 +53,44 @@
 				getNowHeight()
 			}, 100)
 			// 监听文本变化事件
-			myEditor.onDidChangeModelContent(function (event) {
-				// 获取更改内容
-				var changes = event.changes;
-				// 遍历更改内容
-				for (var i = 0; i < changes.length; i++) {
-					var change = changes[i];
-					console.log('change:', change.range)
-					console.log(`change.text:`,change.text)
-					if ((myEditor.getModel().getLineContent(1)!=='style {')
-							||
-							(myEditor.getModel().getLineContent(myEditor.getModel().getLineCount())!=='}')
-					) {
-						myEditor.getModel().undo()
+			if(event.data.language==='css'){
+				myEditor.onDidChangeModelContent(function (event) {
+					// 获取更改内容
+					var changes = event.changes;
+					// 遍历更改内容
+					for (var i = 0; i < changes.length; i++) {
+						var change = changes[i];
+						console.log('change:', change.range)
+						console.log(`change.text:`,change.text)
+						if ((myEditor.getModel().getLineContent(1)!=='style {')
+								||
+								(myEditor.getModel().getLineContent(myEditor.getModel().getLineCount())!=='}')
+						) {
+							myEditor.getModel().undo()
+						}
+						getNowHeight()
 					}
-					getNowHeight()
-					// myEditor.getModel().undo()
-					// 检查是否为删除操作
-					// if (change.text === "" && change.rangeLength > 0) {
-					//     var line = change.range.startLineNumber;
-					//     var column = change.range.startColumn;
-					//     // 禁止删除操作
-					//     myEditor.executeEdits("preventDelete", [{ range: change.range, text: "" }]);
-					// }
-				}
-			});
+				});
+			}else {
+				myEditor.onDidChangeModelContent(function (event) {
+					// 获取更改内容
+					var changes = event.changes;
+					// 遍历更改内容
+					for (var i = 0; i < changes.length; i++) {
+						var change = changes[i];
+						console.log('change:', change.range)
+						console.log(`change.text:`,change.text)
+						if ((myEditor.getModel().getLineContent(1)!=='(()=>{')
+								||
+								(myEditor.getModel().getLineContent(myEditor.getModel().getLineCount())!=='})()')
+						) {
+							myEditor.getModel().undo()
+						}
+						getNowHeight()
+					}
+				});
+			}
+
 			myEditor.onKeyDown(function (e) {
 				if (e.keyCode === monaco.KeyCode.Delete || e.keyCode === monaco.KeyCode.Backspace) {
 					getNowHeight()
