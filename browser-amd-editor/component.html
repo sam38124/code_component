@@ -31,7 +31,13 @@
 	require.config({paths: {vs: './monaco-editor/min/vs'}});
 
 	require(['vs/editor/editor.main'], function () {
-
+		parent.postMessage(
+				{
+					type: 'initial',
+					data:{}
+				},
+				targetOrigin
+		)
 		// 监听父窗口发来的消息
 		window.addEventListener('message', function(event) {
 			// 处理收到的消息
@@ -98,7 +104,7 @@
 			// 添加內容變化的監聽器
 			myEditor.onDidChangeModelContent(function (event) {
 				// 當內容發生變化時，觸發這個回調函數
-				var newValue = {
+				const newValue = {
 					callbackID:getUrlParameter('callbackID'),
 					value:myEditor.getValue()
 				}; // 獲取當前的內容
