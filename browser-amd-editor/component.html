@@ -58,6 +58,8 @@
 			setTimeout(() => {
 				getNowHeight()
 			}, 100)
+			console.log(`event.data.refactor--`,(typeof event.data.refactor))
+			console.log(`event.data.refactor--`,event.data.refactor)
 			// 监听文本变化事件
 			if(event.data.refactor){
 				if(event.data.language==='css'){
