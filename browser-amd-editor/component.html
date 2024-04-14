@@ -1,127 +1,130 @@
 <!DOCTYPE html>
 <html>
 <head>
-	<title>browser-amd-editor</title>
-	<meta http-equiv="Content-Type" content="text/html;charset=utf-8"/>
-	<script src="../jquery.js"></script>
+    <title>browser-amd-editor</title>
+    <meta http-equiv="Content-Type" content="text/html;charset=utf-8"/>
+    <script src="../jquery.js"></script>
 </head>
 <body style="overflow-x: hidden;overflow-y: hidden;">
 <script>
-	function getUrlParameter(sParam) {
-		let sPageURL = window.location.search.substring(1),
-				sURLVariables = sPageURL.split('&'),
-				sParameterName,
-				i;
+    function getUrlParameter(sParam) {
+        let sPageURL = window.location.search.substring(1),
+            sURLVariables = sPageURL.split('&'),
+            sParameterName,
+            i;
 
-		for (i = 0; i < sURLVariables.length; i++) {
-			sParameterName = sURLVariables[i].split('=');
+        for (i = 0; i < sURLVariables.length; i++) {
+            sParameterName = sURLVariables[i].split('=');
 
-			if (sParameterName[0] === sParam) {
-				return sParameterName[1] === undefined ? true : decodeURIComponent(sParameterName[1]);
-			}
-		}
-	}
-	document.write(`<div id="container" style="overflow-x: hidden;overflow-y: hidden;width: 100vw; height: ${getUrlParameter('height')}px;"></div>`)
+            if (sParameterName[0] === sParam) {
+                return sParameterName[1] === undefined ? true : decodeURIComponent(sParameterName[1]);
+            }
+        }
+    }
+
+    document.write(`<div id="container" style="overflow-x: hidden;overflow-y: hidden;width: 100vw; height: ${getUrlParameter('height')}px;"></div>`)
 </script>
 
 <!-- OR ANY OTHER AMD LOADER HERE INSTEAD OF loader.js -->
 <script src="./monaco-editor/min/vs/loader.js"></script>
 <script>
-	const targetOrigin = getUrlParameter('link'); // 父级页面的域名
-	require.config({paths: {vs: './monaco-editor/min/vs'}});
+    const targetOrigin = getUrlParameter('link'); // 父级页面的域名
+    require.config({paths: {vs: './monaco-editor/min/vs'}});
 
-	require(['vs/editor/editor.main'], function () {
-		parent.postMessage(
-				{
-					type: 'initial',
-					data:{}
-				},
-				targetOrigin
-		)
-		// 监听父窗口发来的消息
-		window.addEventListener('message', function(event) {
-			// 处理收到的消息
-			console.log('收到消息：', event.data);
-			if(event.data.type!=='getData'){
-				return
-			}
-			const myEditor = monaco.editor.create(document.getElementById('container'), {
-				value: event.data.value,
-				language: event.data.language
-			});
-			var nowHeight = 0
+    require(['vs/editor/editor.main'], function () {
+        parent.postMessage(
+            {
+                type: 'initial',
+                data: {}
+            },
+            targetOrigin
+        )
+        // 监听父窗口发来的消息
+        window.addEventListener('message', function (event) {
+            // 处理收到的消息
+            console.log('收到消息：', event.data);
+            if (event.data.type !== 'getData') {
+                return
+            }
+            const myEditor = monaco.editor.create(document.getElementById('container'), {
+                value: event.data.value,
+                language: event.data.language
+            });
+            var nowHeight = 0
 
-			function getNowHeight() {
-				nowHeight = document.querySelectorAll('.view-line').length
-			}
+            function getNowHeight() {
+                nowHeight = document.querySelectorAll('.view-line').length
+            }
 
-			setTimeout(() => {
-				getNowHeight()
-			}, 100)
-			// 监听文本变化事件
-			if(event.data.refactor){
-				if(event.data.language==='css'){
-					myEditor.onDidChangeModelContent(function (event) {
-						// 获取更改内容
-						var changes = event.changes;
-						// 遍历更改内容
-						for (var i = 0; i < changes.length; i++) {
-							var change = changes[i];
-							console.log('change:', change.range)
-							console.log(`change.text:`,change.text)
-							if ((myEditor.getModel().getLineContent(1)!=='style {')
-									||
-									(myEditor.getModel().getLineContent(myEditor.getModel().getLineCount())!=='}')
-							) {
-								myEditor.getModel().undo()
-							}
-							getNowHeight()
-						}
-					});
-				}else if(event.data.language==='javascript'){
-					myEditor.onDidChangeModelContent(function (event) {
-						// 获取更改内容
-						var changes = event.changes;
-						// 遍历更改内容
-						for (var i = 0; i < changes.length; i++) {
-							var change = changes[i];
-							console.log('change:', change.range)
-							console.log(`change.text:`,change.text)
-							if ((myEditor.getModel().getLineContent(1)!=='(()=>{') ||
-									(myEditor.getModel().getLineContent(myEditor.getModel().getLineCount())!=='})()')
-							) {
-								myEditor.getModel().undo()
-							}
-							getNowHeight()
-						}
-					});
-				}
-			}
+            setTimeout(() => {
+                getNowHeight()
+            }, 100)
+            // 监听文本变化事件
+            if (event.data.refactor) {
+                if (event.data.language === 'css') {
+                    myEditor.onDidChangeModelContent(function (event) {
+                        // 获取更改内容
+                        var changes = event.changes;
+                        // 遍历更改内容
+                        for (var i = 0; i < changes.length; i++) {
+                            var change = changes[i];
+                            console.log('change:', change.range)
+                            console.log(`change.text:`, change.text)
+                            if ((myEditor.getModel().getLineContent(1) !== 'style {')
+                                ||
+                                (myEditor.getModel().getLineContent(myEditor.getModel().getLineCount()) !== '}')
+                            ) {
+                                myEditor.getModel().undo()
+                            }
+                            getNowHeight()
+                        }
+                    });
+                } else if (event.data.language === 'javascript') {
+                    let start = event.data.structStart || '(()=>{'
+                    let end = event.data.structEnd || '})()'
+                    myEditor.onDidChangeModelContent(function (event) {
+                        // 获取更改内容
+                        var changes = event.changes;
+                        // 遍历更改内容
+                        for (var i = 0; i < changes.length; i++) {
+                            var change = changes[i];
+                            console.log('change:', change.range)
+                            console.log(`change.text:`, change.text)
+                            if ((myEditor.getModel().getLineContent(1) !== start) ||
+                                (myEditor.getModel().getLineContent(myEditor.getModel().getLineCount()) !== end)
+                            ) {
+                                myEditor.getModel().undo()
+                            }
+                            getNowHeight()
+                        }
+                    });
+                }
+            }
 
 
-			myEditor.onKeyDown(function (e) {
-				if (e.keyCode === monaco.KeyCode.Delete || e.keyCode === monaco.KeyCode.Backspace) {
-					getNowHeight()
-				}
-			});
-			// 添加內容變化的監聽器
-			myEditor.onDidChangeModelContent(function (event) {
-				// 當內容發生變化時，觸發這個回調函數
-				const newValue = {
-					callbackID:getUrlParameter('callbackID'),
-					value:myEditor.getValue()
-				}; // 獲取當前的內容
-				console.log("內容已變化：", newValue);
-				parent.postMessage(
-						{
-							type: 'dataChange',
-							data: newValue,
-						},
-						targetOrigin
-				);
-			});
-		});
-	});
+            myEditor.onKeyDown(function (e) {
+                if (e.keyCode === monaco.KeyCode.Delete || e.keyCode === monaco.KeyCode.Backspace) {
+                    getNowHeight()
+                }
+            });
+            // 添加內容變化的監聽器
+            myEditor.onDidChangeModelContent(function (event) {
+                // 當內容發生變化時，觸發這個回調函數
+                const newValue = {
+                    callbackID: getUrlParameter('callbackID'),
+                    value: myEditor.getValue()
+                }; // 獲取當前的內容
+                console.log("內容已變化：", newValue);
+                parent.postMessage(
+                    {
+                        type: 'dataChange',
+                        data: newValue,
+                    },
+                    targetOrigin
+                );
+            });
+        });
+    });
 
 </script>
 </body>
